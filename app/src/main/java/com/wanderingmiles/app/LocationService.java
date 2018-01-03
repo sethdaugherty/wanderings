@@ -188,7 +188,7 @@ public class LocationService extends Service {
                                     mRequestingLocationUpdates = false;
                             }
                         }
-                    });
+                    }); 
         }
         else if (action.equals(STOP)) {
             Log.d(TAG, "Stopping updates");

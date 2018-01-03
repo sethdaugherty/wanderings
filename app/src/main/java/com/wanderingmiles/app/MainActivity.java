@@ -27,10 +27,12 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
@@ -355,6 +357,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent locationServiceIntent = new Intent(this, LocationService.class);
         locationServiceIntent.setAction(LocationService.START);
+        //startService(locationServiceIntent);
         startService(locationServiceIntent);
         /*
         // Begin by checking if the device has the necessary location settings.

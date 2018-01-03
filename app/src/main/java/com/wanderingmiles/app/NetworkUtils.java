@@ -22,7 +22,7 @@ public class NetworkUtils {
             "https://sethdaugherty.io:9001/api/date/20170101";
 
     // TODO: this isn't re-usable
-    public static String postRawJsonString(String rawJson){
+    public static boolean postRawJsonString(String rawJson){
         try {
             URL url = new URL(BASE_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -46,8 +46,9 @@ public class NetworkUtils {
             conn.disconnect();
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
 
-        return "success";
+        return true;
     }
 }
