@@ -6,6 +6,7 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -114,6 +115,7 @@ public class LocationService extends Service {
 
     @Override
     public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
+        //Context parentContext = intent.
         String action = intent.getAction();
         if (action != null && action.equals(LocationService.START)) {
             // TODO: move all this stuff to a method
@@ -264,7 +266,7 @@ public class LocationService extends Service {
         contentValues.put(LocationContract.LocationEntry.COLUMN_DATE, now.getTime());
         contentValues.put(LocationContract.LocationEntry.COLUMN_LATITUDE, location.getLatitude());
         contentValues.put(LocationContract.LocationEntry.COLUMN_LONGITUDE, location.getLongitude());
-        mLocationDbHelper.getWritableDatabase().insert(LocationContract.LocationEntry.TABLE_NAME, null, contentValues);
+        long insertResult = mLocationDbHelper.getWritableDatabase().insert(LocationContract.LocationEntry.TABLE_NAME, null, contentValues);
         Log.d(TAG, "Wrote current postion to DB: " + now.getTime() + " " + location.getLatitude() + ", " + location.getLongitude());
     }
 }

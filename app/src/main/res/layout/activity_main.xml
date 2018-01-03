@@ -77,6 +77,18 @@
                 android:gravity="center"
                 android:onClick="stopUpdatesButtonHandler"
                 android:text="@string/stop_updates" />
+
+            <Button
+                android:id="@+id/sync_data_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/small_margin"
+                android:layout_marginStart="@dimen/small_margin"
+                android:layout_weight="1"
+                android:enabled="true"
+                android:gravity="center"
+                android:onClick="syncDataButtonHandler"
+                android:text="@string/syncData" />
         </LinearLayout>
 
         <TextView

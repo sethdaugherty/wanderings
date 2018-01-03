@@ -290,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
         contentValues.put(LocationContract.LocationEntry.COLUMN_DATE, now.getTime());
         contentValues.put(LocationContract.LocationEntry.COLUMN_LATITUDE, location.getLatitude());
         contentValues.put(LocationContract.LocationEntry.COLUMN_LONGITUDE, location.getLongitude());
-        mLocationDbHelper.getWritableDatabase().insert(LocationContract.LocationEntry.TABLE_NAME, null, contentValues);
+        long insertCount = mLocationDbHelper.getWritableDatabase().insert(LocationContract.LocationEntry.TABLE_NAME, null, contentValues);
         Log.d(TAG, "Wrote current postion to DB: " + now.getTime() + " " + location.getLatitude() + ", " + location.getLongitude());
     }
 
@@ -400,6 +400,29 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
                 */
+    }
+
+    public void syncDataButtonHandler(View view) {
+        syncLocationData();
+        startSpinner();
+    }
+
+    private void startSpinner() {
+        // TODO: Implement this.
+    }
+
+    private void syncLocationData() {
+        Log.d(TAG, "Starting to sync location data");
+        SyncDataTask syncDataTask = new SyncDataTask(this);
+        syncDataTask.execute();
+
+        // 1 start an async task
+        // 2 query for all positions where unsynced==true
+        // 3 convert resultSet into json
+        // 4 build URL to post to
+        // 5 post data
+        // 6 Stop spinner
+        // 7 print success message
     }
 
     /**
