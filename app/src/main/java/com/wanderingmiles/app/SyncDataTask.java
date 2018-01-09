@@ -16,6 +16,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,8 +30,11 @@ public class SyncDataTask extends AsyncTask<Void, Void, String> {
     //private LocationDbHelper mLocationDbHelper;
     private Context mParentContext;
 
-    public SyncDataTask(Context parentContext) {
+    private boolean mSyncAll;
+
+    public SyncDataTask(Context parentContext, boolean syncAll) {
         mParentContext = parentContext;
+        mSyncAll = syncAll;
         //this.mLocationDbHelper = locationDbHelper;
     }
 
@@ -38,26 +43,31 @@ public class SyncDataTask extends AsyncTask<Void, Void, String> {
         Log.d(TAG, "starting async task");
         SQLiteDatabase writableDatabase = new LocationDbHelper(mParentContext).getWritableDatabase();
 
+        // TODO: break this sync up into batches
+
         // Step 1: Find all positions that haven't been synced yet
-        Cursor unsyncedPositionsCursor = writableDatabase.query(LocationContract.LocationEntry.TABLE_NAME, null, LocationContract.LocationEntry.COLUMN_SYNCED + " = 'false'", null, null, null, null);
-        //Cursor unsyncedPositionsCursor = writableDatabase.query(LocationContract.LocationEntry.TABLE_NAME, null, null, null, null, null, null);
-
-        // Step 2: Convert the resultset to a JSON payload
-        String positionsJson = convertResultsToJson(unsyncedPositionsCursor);
-
-        // Step 3: Post the payload
-        if (positionsJson != "") {
-            boolean postStatus = NetworkUtils.postRawJsonString(positionsJson);
-
-            // Step 5: Mark all the positions as synced
-            boolean updateStatuse = markPositionsAsSynced(unsyncedPositionsCursor, writableDatabase);
-
-            return "success";
+        Cursor unsyncedPositionsCursor;
+        if (mSyncAll) {
+            unsyncedPositionsCursor = writableDatabase.query(LocationContract.LocationEntry.TABLE_NAME, null, null, null, null, null, null);
         }
         else {
-            return "no unsynced positions found";
+            unsyncedPositionsCursor = writableDatabase.query(LocationContract.LocationEntry.TABLE_NAME, null, LocationContract.LocationEntry.COLUMN_SYNCED + " = 'false'", null, null, null, null);
         }
 
+        // Step 2: Convert the resultset to a JSON payload. Each String in the result is the raw json payload for a batch of positions
+        Collection<String> payloads = convertResultsToJson(unsyncedPositionsCursor);
+
+        // Step 3: Post the payload
+        for (String payload : payloads) {
+            boolean postStatus = NetworkUtils.postRawJsonString(payload);
+            Log.d(TAG, "posting position json returned status=" + postStatus);
+        }
+        if (payloads.isEmpty()) {
+            boolean updateStatuse = markPositionsAsSynced(unsyncedPositionsCursor, writableDatabase);
+
+        }
+
+        return "successful";
     }
 
     private boolean markPositionsAsSynced(Cursor unsyncedPositionsCursor, SQLiteDatabase writableDatabase) {
@@ -82,9 +92,13 @@ public class SyncDataTask extends AsyncTask<Void, Void, String> {
         }
     }
 
-    private String convertResultsToJson(Cursor unsyncedPositionsCursor) {
+    private Collection<String> convertResultsToJson(Cursor unsyncedPositionsCursor) {
+        List<String> resultsList = new ArrayList<>();
+        int maxBatchSize = 100;
+        int currentBatchSize = 0;
         JSONArray positionsArray = new JSONArray();
         if (unsyncedPositionsCursor.getCount() > 0) {
+            Log.d(TAG, "Found " + unsyncedPositionsCursor.getCount() + " position records to sync");
             unsyncedPositionsCursor.moveToFirst();
             do {
                 // TODO: Figure out how to do this json serialization more gracefully. It's probably obvious.
@@ -100,12 +114,21 @@ public class SyncDataTask extends AsyncTask<Void, Void, String> {
                 }
 
                 positionsArray.put(rawObject);
+                currentBatchSize++;
+                if (currentBatchSize >= maxBatchSize) {
+                    resultsList.add(positionsArray.toString());
+                    positionsArray = new JSONArray();
+
+                    currentBatchSize = 0;
+                }
             } while (unsyncedPositionsCursor.moveToNext());
 
-            return positionsArray.toString();
+
+            if (positionsArray.length() > 0) {
+                resultsList.add(positionsArray.toString());
+            }
         }
-        else {
-            return "";
-        }
+
+        return resultsList;
     }
 }

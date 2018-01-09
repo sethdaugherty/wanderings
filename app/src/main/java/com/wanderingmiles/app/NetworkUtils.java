@@ -19,7 +19,7 @@ public class NetworkUtils {
 
     // TODO: this is also shit
     final static String BASE_URL =
-            "https://sethdaugherty.io:9001/api/date/20170101";
+            "http://sethdaugherty.io:9001/api/date/20170101";
 
     // TODO: this isn't re-usable
     public static boolean postRawJsonString(String rawJson){

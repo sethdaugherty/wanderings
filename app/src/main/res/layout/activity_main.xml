@@ -57,7 +57,7 @@
 
             <Button
                 android:id="@+id/start_updates_button"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="10dp"
                 android:layout_marginRight="10dp"
@@ -68,7 +68,7 @@
 
             <Button
                 android:id="@+id/stop_updates_button"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="@dimen/small_margin"
                 android:layout_marginStart="@dimen/small_margin"
@@ -78,9 +78,16 @@
                 android:onClick="stopUpdatesButtonHandler"
                 android:text="@string/stop_updates" />
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
             <Button
                 android:id="@+id/sync_data_button"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="@dimen/small_margin"
                 android:layout_marginStart="@dimen/small_margin"
@@ -89,6 +96,19 @@
                 android:gravity="center"
                 android:onClick="syncDataButtonHandler"
                 android:text="@string/syncData" />
+
+            <Button
+                android:id="@+id/sync_all_data_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/small_margin"
+                android:layout_marginStart="@dimen/small_margin"
+                android:layout_weight="1"
+                android:enabled="true"
+                android:gravity="center"
+                android:onClick="syncAllDataButtonHandler"
+                android:text="@string/syncAllData" />
+
         </LinearLayout>
 
         <TextView

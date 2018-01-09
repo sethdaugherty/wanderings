@@ -133,8 +133,6 @@ public class LocationService extends Service {
                             .setTicker(getText(R.string.ticker_text))
                             .build();
 
-            startForeground(ONGOING_NOTIFICATION_ID, notification);
-            Log.d("BLAH", "finished onHandleIntent");
 
             mSettingsClient.checkLocationSettings(mLocationSettingsRequest)
                     .addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
@@ -188,7 +186,9 @@ public class LocationService extends Service {
                                     mRequestingLocationUpdates = false;
                             }
                         }
-                    }); 
+                    });
+            startForeground(ONGOING_NOTIFICATION_ID, notification);
+
         }
         else if (action.equals(STOP)) {
             Log.d(TAG, "Stopping updates");
@@ -196,7 +196,9 @@ public class LocationService extends Service {
             stopSelf();
         }
 
-        return START_STICKY;
+        Log.d("BLAH", "finished onStartCommand");
+
+        return START_REDELIVER_INTENT;
     }
 
     @Override

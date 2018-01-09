@@ -18,6 +18,7 @@ package com.wanderingmiles.app;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.ContentValues;
@@ -166,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
      * Tracks the status of the location updates request. Value changes when the user presses the
      * Start Updates and Stop Updates buttons.
      */
-    private Boolean mRequestingLocationUpdates;
+    //private Boolean mRequestingLocationUpdates;
 
     /**
      * Time when the location was updated represented as a String.
@@ -192,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
         mLongitudeLabel = getResources().getString(R.string.longitude_label);
         mLastUpdateTimeLabel = getResources().getString(R.string.last_update_time_label);
 
-        mRequestingLocationUpdates = false;
+        //mRequestingLocationUpdates = false;
         mLastUpdateTime = "";
 
         // Update values using data stored in the Bundle.
@@ -219,10 +220,10 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState != null) {
             // Update the value of mRequestingLocationUpdates from the Bundle, and make sure that
             // the Start Updates and Stop Updates buttons are correctly enabled or disabled.
-            if (savedInstanceState.keySet().contains(KEY_REQUESTING_LOCATION_UPDATES)) {
-                mRequestingLocationUpdates = savedInstanceState.getBoolean(
-                        KEY_REQUESTING_LOCATION_UPDATES);
-            }
+//            if (savedInstanceState.keySet().contains(KEY_REQUESTING_LOCATION_UPDATES)) {
+//                mRequestingLocationUpdates = savedInstanceState.getBoolean(
+//                        KEY_REQUESTING_LOCATION_UPDATES);
+//            }
 
             // Update the value of mCurrentLocation from the Bundle and update the UI to show the
             // correct latitude and longitude.
@@ -319,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case Activity.RESULT_CANCELED:
                         Log.i(TAG, "User chose not to make required location settings changes.");
-                        mRequestingLocationUpdates = false;
+                        //mRequestingLocationUpdates = false;
                         updateUI();
                         break;
                 }
@@ -332,8 +333,8 @@ public class MainActivity extends AppCompatActivity {
      * updates have already been requested.
      */
     public void startUpdatesButtonHandler(View view) {
-        if (!mRequestingLocationUpdates) {
-            mRequestingLocationUpdates = true;
+        if (!isServiceRunning(LocationService.class)) {
+            //mRequestingLocationUpdates = true;
             setButtonsEnabledState();
             startLocationUpdates();
         }
@@ -406,7 +407,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void syncDataButtonHandler(View view) {
-        syncLocationData();
+        syncLocationData(false);
+        startSpinner();
+    }
+
+    public void syncAllDataButtonHandler(View view) {
+        syncLocationData(true);
         startSpinner();
     }
 
@@ -414,9 +420,9 @@ public class MainActivity extends AppCompatActivity {
         // TODO: Implement this.
     }
 
-    private void syncLocationData() {
+    private void syncLocationData(boolean syncAll) {
         Log.d(TAG, "Starting to sync location data");
-        SyncDataTask syncDataTask = new SyncDataTask(this);
+        SyncDataTask syncDataTask = new SyncDataTask(this, syncAll);
         syncDataTask.execute();
 
         // 1 start an async task
@@ -443,7 +449,7 @@ public class MainActivity extends AppCompatActivity {
      * if the user is requesting location updates.
      */
     private void setButtonsEnabledState() {
-        if (mRequestingLocationUpdates) {
+        if (isServiceRunning(LocationService.class)) {
             mStartUpdatesButton.setEnabled(false);
             mStopUpdatesButton.setEnabled(true);
         } else {
@@ -491,7 +497,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
         */
-        mRequestingLocationUpdates = false;
+        //mRequestingLocationUpdates = false;
         setButtonsEnabledState();
     }
 
@@ -500,7 +506,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         // Within {@code onPause()}, we remove location updates. Here, we resume receiving
         // location updates if the user has requested them.
-        if (mRequestingLocationUpdates && checkPermissions()) {
+        if (isServiceRunning(LocationService.class) && checkPermissions()) {
             startLocationUpdates();
         } else if (!checkPermissions()) {
             requestPermissions();
@@ -514,17 +520,18 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
 
         // Remove location updates to save battery.
-        stopLocationUpdates();
+        //stopLocationUpdates();
     }
 
     /**
      * Stores activity data in the Bundle.
      */
+    @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putBoolean(KEY_REQUESTING_LOCATION_UPDATES, mRequestingLocationUpdates);
+        super.onSaveInstanceState(savedInstanceState);
+        //savedInstanceState.putBoolean(KEY_REQUESTING_LOCATION_UPDATES, mRequestingLocationUpdates);
         savedInstanceState.putParcelable(KEY_LOCATION, mCurrentLocation);
         savedInstanceState.putString(KEY_LAST_UPDATED_TIME_STRING, mLastUpdateTime);
-        super.onSaveInstanceState(savedInstanceState);
     }
 
     /**
@@ -595,7 +602,7 @@ public class MainActivity extends AppCompatActivity {
                 // receive empty arrays.
                 Log.i(TAG, "User interaction was cancelled.");
             } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (mRequestingLocationUpdates) {
+                if (!isServiceRunning(LocationService.class)) {
                     Log.i(TAG, "Permission granted, updates requested, starting location updates");
                     startLocationUpdates();
                 }
@@ -628,5 +635,15 @@ public class MainActivity extends AppCompatActivity {
                         });
             }
         }
+    }
+
+    private boolean isServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
